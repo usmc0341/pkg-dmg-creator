@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euxo pipefail
+
+# Define the log file path
+LOG_FILE="/tmp/sentinelone_install.log"
+
+# Get the script's directory path
+echo "Getting script directory..."
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+echo "Script directory: $script_dir"
+
+# Set the file names
+echo "Setting package and profile file names..."
+sentinel_pkg="$(ls "$script_dir" | grep -i '\.pkg$' || true)"
+sentinel_profile="com.sentinelone.registration-token"
+echo "Package file: $sentinel_pkg"
+echo "Profile file: $sentinel_profile"
+
+# Find the SentinelOne package and profile in the script's directory
+echo "Searching for package and profile files..."
+SOURCE="$script_dir/$sentinel_pkg"
+PROFILE="$script_dir/$sentinel_profile"
+echo "Package file path: $SOURCE"
+echo "Profile file path: $PROFILE"
+
+# If the files are not found in the script's directory, use the original 'find' command
+if [[ ! -f "$SOURCE" ]]; then
+  echo "Package file not found in script directory. Searching recursively..."
+  SOURCE=$(find "$script_dir" -iname "*Sentinel*.pkg" -print -quit)
+fi
+
+if [[ ! -f "$PROFILE" ]]; then
+  echo "Profile file not found in script directory. Searching recursively..."
+  PROFILE=$(find "$script_dir" -iname "*$sentinel_profile*" -print -quit)
+fi
+
+# Check if the files exist
+if [[ ! -f "$SOURCE" || ! -f "$PROFILE" ]]; then
+  echo "Error: SentinelOne package or profile not found."
+  exit 1
+fi
+
+# Copy the files to the temporary directory
+echo "Copying files to /tmp..."
+cp "$SOURCE" "$PROFILE" /tmp
+
+# Install SentinelOne and redirect stderr to the log file
+echo "Installing SentinelOne..."
+sudo /usr/sbin/installer -verboseR -pkg "/tmp/$(basename "$SOURCE")" -target /Library/ 2>> "$LOG_FILE"
+
+# Remove the package and profile
+echo "Cleaning up..."
+sudo rm "/tmp/$(basename "$SOURCE")" "/tmp/$(basename "$PROFILE")"
+
+# Exit successfully
+echo "SentinelOne installation completed successfully."
+exit 0
