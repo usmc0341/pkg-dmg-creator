@@ -8,15 +8,9 @@ can be used to easily distribute and install applications on macOS systems.
 To use the script, you can either pass the required arguments (the .dmg image name and the .pkg installer path) when 
 running the script, or you can run the script without arguments and it will prompt you to enter the necessary information.
 
-### With Arguments
-
-```bash
-./create_dmg.sh <dmg_image_name> <pkg_installer_path>
-```
-
 ### Without Arguments
 ```bash
-./create_dmg.sh
+./create_dmg_with_bundle_pkg.sh
 ```
 
 ## Dependencies
